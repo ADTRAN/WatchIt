@@ -1,0 +1,20 @@
+[package]
+name = "watchit"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["ADTRAN"]
+description = "Runs a command whenever a file changes"
+readme = "README.md"
+repository = "https://github.com/ADTRAN/WatchIt/"
+publish = false
+
+[dependencies]
+inotify = "^0.9.6"
+walkdir = "^2.3.2"
+clap = "^2.34.0"
+log = "^0.4.14"
+pretty_env_logger = "^0.4.0"
+anyhow = "^1.0.51"
+crossbeam-channel = "^0.5.1"
+nix = "^0.23.0"
