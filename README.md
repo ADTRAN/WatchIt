@@ -2,7 +2,11 @@
 
 ## Installation
 
-TODO
+Install with [cargo][rustup] like this:
+
+```
+cargo install --git https://github.com/ADTRAN/WatchIt/
+```
 
 ## Usage
 
@@ -15,8 +19,8 @@ tracking (i.e. anything not excluded by .gitignore) will be watched for changes.
 
 The given command is run as a /bin/sh shell script. Some example invocations include:
 
-    # Run porg test whenever a file changes
-    watchit 'porg test'
+    # Run pytest tests whenever a file changes
+    watchit 'pytest -vvl test'
 
     # Run cargo fmt and then cargo test whenever a file changes
     watchit 'cargo fmt && cargo test'
@@ -39,3 +43,5 @@ OPTIONS:
 ARGS:
     <COMMAND>    The command to run when a file changes. Passed to /bin/sh
 ```
+
+[rustup]: https://rustup.rs/
