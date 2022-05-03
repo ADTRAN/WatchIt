@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
 use inotify::{EventMask, WatchMask};
-use log::{debug, info};
+use log::{debug, info, warn};
 use std::{
     collections::{HashMap, HashSet},
     fs::canonicalize,
@@ -88,15 +88,36 @@ where
                 // We must always add the watch because git won't know if we should watch it until
                 // it's too late.
                 let leading_path = watch_descriptors.get(&event.wd).unwrap();
-                let full_path = canonicalize(leading_path.join(event.name.unwrap()))?;
-                let descriptor = inotifier
-                    .add_watch(
-                        full_path.clone(),
-                        WatchMask::CREATE | WatchMask::DELETE | WatchMask::MODIFY,
-                    )
-                    .context(format!("Could not create inotify watch on {:?}", full_path))?;
-                debug!("Added watch for new directory {:?}", full_path);
-                watch_descriptors.insert(descriptor, full_path);
+                let maybe_full_path = canonicalize(leading_path.join(event.name.unwrap()));
+                if maybe_full_path.is_err() {
+                    warn!(
+                        "Could not watch {:?}/{:?}, it may have been deleted",
+                        leading_path,
+                        event.name.unwrap()
+                    );
+                    continue;
+                }
+                let full_path = maybe_full_path.unwrap();
+                let maybe_descriptor = inotifier.add_watch(
+                    full_path.clone(),
+                    WatchMask::CREATE | WatchMask::DELETE | WatchMask::MODIFY,
+                );
+                match maybe_descriptor {
+                    Ok(descriptor) => {
+                        debug!("Added watch for new directory {:?}", full_path);
+                        watch_descriptors.insert(descriptor, full_path);
+                    }
+                    Err(error) => {
+                        if error.kind() == std::io::ErrorKind::NotFound {
+                            warn!("Could not watch {:?}, it may have been deleted", full_path);
+                        } else {
+                            return Err(error).context(format!(
+                                "Could not create inotify watch on {:?}",
+                                full_path
+                            ));
+                        }
+                    }
+                }
             } else {
                 if let Some(name) = event.name {
                     let leading_path = watch_descriptors.get(&event.wd).unwrap();
