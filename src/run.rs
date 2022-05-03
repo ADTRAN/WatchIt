@@ -13,7 +13,7 @@ pub fn run_on_change(
     quiet_period: Duration,
 ) -> Result<()> {
     let mut change_event = change_channel.recv();
-    while let Ok(event) = change_event {
+    while let Ok(mut event) = change_event {
         let mut changed_during_run = true;
         while changed_during_run {
             changed_during_run = false;
@@ -24,6 +24,11 @@ pub fn run_on_change(
                         flush(quiet_period, &change_channel)?;
                         changed_during_run =
                             process_change_cycle(command, interrupt_on_changes, &change_channel)?;
+                    }
+
+                    // If changes happen during the initial run, the event is different
+                    if changed_during_run {
+                        event = WatcherEvent::ChangeDetected
                     }
                 }
                 WatcherEvent::ChangeDetected => {
@@ -84,7 +89,9 @@ fn process_change_cycle(
                 status = Some(message.context("Child thread communication error")??);
             }
             recv(change_channel) -> message => {
-                message?;
+                if let WatcherEvent::Error(err) = message? {
+                    return err.map(|_| false);
+                }
                 changed_during_run = true;
                 if interrupt_on_changes {
                     info!("Interrupting command so it can be restarted");

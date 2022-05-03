@@ -121,6 +121,7 @@ where
                 return Ok(());
             }
         }
+
         previous_allowed_watches = allowed_watches;
     }
 }
