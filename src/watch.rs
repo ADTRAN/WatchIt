@@ -83,6 +83,7 @@ where
         let mut change_detected = false;
 
         for event in events {
+            debug!("Inotify event {:?}", event);
             if event.mask.contains(EventMask::ISDIR | EventMask::CREATE) {
                 // We must always add the watch because git won't know if we should watch it until
                 // it's too late.
