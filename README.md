@@ -2,7 +2,14 @@
 
 ## Installation
 
-Install with [cargo][rustup] like this:
+Install the static binary like this:
+
+```
+sudo curl -L 'https://github.com/ADTRAN/WatchIt/releases/download/v1.0.0/watchit' -o /usr/local/bin/watchit
+sudo chmod +x /usr/local/bin/watchit
+```
+
+Or install with [cargo][rustup] like this:
 
 ```
 cargo install --git https://github.com/ADTRAN/WatchIt/
